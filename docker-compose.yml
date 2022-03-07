@@ -1,0 +1,95 @@
+version: "3.0"
+
+services:
+
+  nginx:
+    image: sierratecnologia/nginx
+    restart: always
+    ports:
+      - "80:80"
+      # - "443:443"
+    volumes:
+      - ./docker/nginx_conf:/etc/nginx/conf.d
+      - ./:/var/www/html
+      - /usr/bin/ssh:/usr/bin/ssh
+    depends_on:
+      - php
+    networks:
+      - outside
+      - internal
+      
+  php:
+    image: sierratecnologia/php:7.4
+    # build:
+    #   context: ./docker/php/
+    #   dockerfile: ./Dockerfile
+    command: bash -c "php-fpm"
+    environment:
+      PHP_XDEBUG_ENABLED: 1 # Set 1 to enable.
+      PHP_IDE_CONFIG: "serverName=docker"
+      XDEBUG_CONFIG: "remote_host=172.17.0.1"
+    volumes:
+      - ./:/var/www/html
+      - ~/.ssh:/root/.ssh
+      - ./docker/logs/xdebug/:/tmp/xdebug_log #Logs for Xdebug  volumes:
+      - ./docker/php/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - internal
+
+  redis:
+    image: redis:5.0
+    restart: always
+    expose:
+      - "6379"
+    networks:
+      - internal
+    volumes:
+      - cachedata:/data
+
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: A123456
+      MYSQL_DATABASE: sso
+      MYSQL_USER: sso
+      MYSQL_PASSWORD: A123456
+    networks:
+      - internal
+
+  # db:
+  #   image: postgres:12.3
+  #   restart: always
+  #   volumes:
+  #     - db_datapg:/var/lib/postgresql/data
+  #   environment:
+  #     POSTGRES_ROOT_PASSWORD: A123456
+  #     POSTGRES_DB: sso
+  #     POSTGRES_USER: sso
+  #     POSTGRES_PASSWORD: A123456
+  #   networks:
+  #     - internal
+
+  # adminer:
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8080:8080
+
+volumes:
+  db_data:
+    driver: local
+  db_datapg:
+    driver: local
+  cachedata:
+    driver: local
+
+networks:
+  outside:
+    external: true
+  internal:
+    driver: bridge
