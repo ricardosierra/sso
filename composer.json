@@ -36,6 +36,11 @@
         }
     },
     "scripts": {
+        "psalm": "vendor/bin/psalm",
+        "migrate": "docker exec -it `docker-compose ps -q php` bash -c \"php artisan migrate\";",
+        "test": "docker exec -it `docker-compose ps -q php` bash -c \"php artisan test\";",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage",
+        "format": "vendor/bin/php-cs-fixer fix --allow-risky=yes",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
