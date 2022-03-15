@@ -45,6 +45,10 @@ return [
             'provider' => 'users',
             'hash' => false,
         ],
+        'sso' => [
+            'driver' => 'sso',
+            'model' => \App\Models\User::class
+        ]
     ],
 
     /*
